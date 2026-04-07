@@ -1,17 +1,16 @@
 import json
 import os
 
-# Path where Apktool will unpack the files
-target_file = 'decompiled/assets/data/inventory/wallet.json'
+path = 'source_folder/assets/data/profile/wallet.json'
 
-if os.path.exists(target_file):
-    with open(target_file, 'r') as f:
+if os.path.exists(path):
+    with open(path, 'r') as f:
         data = json.load(f)
+    
+    # ID 1 is usually coins, ID 2 is usually keys
+    # We set them to 2 billion (stay under 2.1b to avoid crashing)
+    for currency in data.get('currencies', {}):
+        data['currencies'][currency]['value'] = 2000000000
 
-    # Set keys and coins to the 32-bit integer limit
-    for item in data.get('currencies', {}):
-        data['currencies'][item]['value'] = 2147483647
-
-    with open(target_file, 'w') as f:
+    with open(path, 'w') as f:
         json.dump(data, f, indent=4)
-    print("Successfully maxed out coins and keys!")
