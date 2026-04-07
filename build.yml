@@ -1,46 +1,44 @@
-name: Subway Surfers Max Mod
+name: Subway Max APK Build
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout Repo
         uses: actions/checkout@v4
 
-      - name: Setup Java 17 (Required for modern APKs)
+      - name: Setup Java 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Modding Tools
+      - name: Install Tools
         run: |
           sudo apt-get update
           sudo apt-get install -y apktool
-          # Download Uber APK Signer (The best tool for Samsung compatibility)
+          # Download the latest signer that supports Samsung Android 14+
           wget https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar -O signer.jar
 
-      - name: Decompile APK
-        # This assumes your original apk is named 'subway.apk' in your repo
-        run: apktool d subway.apk -o decompiled_fs
+      - name: Decompile Original
+        # MAKE SURE your file is named subway.apk in your repo!
+        run: apktool d subway.apk -o source_folder
 
-      - name: Run Mod Script
-        # This runs the Python script we made earlier to set coins to 2.1 billion
+      - name: Inject Max Coins/Keys
+        # This runs your Python script to edit the JSON values
         run: python3 scripts/mod_logic.py
 
-      - name: Rebuild APK
-        run: apktool b decompiled_fs -o subway_unsigned.apk
+      - name: Rebuild Raw APK
+        run: apktool b source_folder -o raw_output.apk
 
-      - name: Advanced Sign & Align (Samsung Fix)
-        # This step is the "Magic Fix" for Samsung. 
-        # It adds V2/V3 signatures and ZipAligns the data.
+      - name: Pro Signing (The Samsung Fix)
+        # --v2SigningEnabled and --v3SigningEnabled are CRITICAL
         run: |
-          java -jar signer.jar --apk subway_unsigned.apk --allowResign --v2SigningEnabled true --v3SigningEnabled true
+          java -jar signer.jar --apk raw_output.apk --allowResign --v2SigningEnabled true --v3SigningEnabled true --v4SigningEnabled false
 
-      - name: Upload Modded APK
+      - name: Release Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Subway-Surfers-Max-Keys
-          # The signer renames the file to include "-aligned-debugSigned"
+          name: Subway-Mod-Final
           path: ./*-aligned-debugSigned.apk
