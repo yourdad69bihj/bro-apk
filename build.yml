@@ -1,14 +1,7 @@
-- name: Advanced Sign & Align (Samsung Fix)
-        id: sign_apk
-        run: |
-          java -jar signer.jar --apk subway_unsigned.apk --allowResign --v2SigningEnabled true --v3SigningEnabled true
-          # We need to find the exact name of the signed file for the next step
-          echo "signed_file=$(ls *-aligned-debugSigned.apk)" >> $GITHUB_OUTPUT
-
-      - name: Upload Raw APK (No Zip)
-        uses: actions/upload-artifact@v7
+- name: Create Release
+        uses: softprops/action-gh-release@v1
         with:
-          # In v7, setting archive to false makes it a direct APK download
-          path: ${{ steps.sign_apk.outputs.signed_file }}
-          archive: false
-          compression-level: 0
+          tag_name: v1.0.${{ github.run_number }}
+          files: ./*-aligned-debugSigned.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
