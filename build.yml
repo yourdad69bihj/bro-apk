@@ -1,0 +1,36 @@
+name: Build Modded Subway Surfers
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java & Python
+        uses: actions/setup-java@v3
+        with: { distribution: 'temurin', java-version: '17' }
+
+      - name: Install Apktool & Signer
+        run: |
+          sudo apt-get install apktool
+          wget https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar
+
+      - name: Decompile APK
+        run: apktool d subway_surfers.apk -o decompiled
+
+      - name: Run Mod Script
+        run: python3 scripts/mod_logic.py
+
+      - name: Rebuild APK
+        run: apktool b decompiled -o subway_modded_unsigned.apk
+
+      - name: Sign APK (Crucial for Samsung)
+        run: java -jar uber-apk-signer-1.3.0.jar --apk subway_modded_unsigned.apk
+
+      - name: Upload Finished APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Modded-Subway-Surfers
+          path: subway_modded_unsigned-aligned-debugSigned.apk
